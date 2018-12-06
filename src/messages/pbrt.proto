@@ -173,14 +173,15 @@ message PerspectiveCamera {
     repeated float screen_window = 6;
 }
 
-enum CameraType {
-    CAMERA_PERSPECTIVE = 0;
-}
+enum FilterType { FILTER_BOX = 0; }
+
+enum CameraType { CAMERA_PERSPECTIVE = 0; }
 
 message Camera {
     CameraType type = 1;
     google.protobuf.Any data = 2;
 
-    Point2f film_resolution = 3;
-    Bounds2f crop_window = 4;
+    FilterType filter_type = 3;
+    Point2f film_resolution = 4;
+    Bounds2f crop_window = 5;
 }

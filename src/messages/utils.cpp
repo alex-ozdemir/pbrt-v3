@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #include "lights/distant.h"
+#include "filters/box.h"
 
 namespace pbrt {
 
@@ -369,6 +370,36 @@ std::shared_ptr<Light> from_protobuf(const protobuf::Light& proto_light) {
             from_protobuf(proto_distant.light_to_world()),
             from_protobuf(proto_distant.l()),
             from_protobuf(proto_distant.dir()));
+    }
+
+    default:
+        throw std::runtime_error("unsupported light type");
+    }
+
+    return light;
+}
+
+std::shared_ptr<Camera> from_protobuf(const protobuf::Camera& proto_camera) {
+    std::shared_ptr<Camera> camera;
+    std::unique_ptr<Filter> filter = make_unqiue<BoxFilter>({0.5, 0.5});
+
+    /* create the film */
+    const Point2f filmResolution = from_protobuf(camera.film_resolution());
+    const Bounds2f filmCropWindow({0.f, 0.f}, {1.f, 1.f});
+    const Float filmDiagonal = 35.f;
+    const Float filmScale = 1.f;
+    const Float filmMaxSampleLuminance = Infinity;
+    Film* film =
+        new Film(filmResolution, filmCropWindow, 35.f, filter, filmDiagonal,
+                 "output.exr", filmScale, filmMaxSampleLuminance);
+
+    switch (proto_camera.type()) {
+    case protobuf::CAMERA_PERSPECTIVE: {
+        protobuf::PerspectiveCamera proto_perspective;
+        proto_camera.data().UnpackTo(&proto_perspective);
+
+        /* first create the film */
+        camera = make_shared<PerspectiveCamera>(from_protobuf(proto_perspective.camera_to_world()));
     }
 
     default:

@@ -4,8 +4,8 @@
 #include "cloud/raystate.h"
 #include "core/geometry.h"
 #include "core/light.h"
-#include "core/spectrum.h"
 #include "core/sampler.h"
+#include "core/spectrum.h"
 #include "core/transform.h"
 #include "lights/distant.h"
 #include "pbrt.pb.h"
@@ -30,6 +30,7 @@ protobuf::VisitNode to_protobuf(const RayState::TreeletNode& node);
 protobuf::RayState to_protobuf(const RayState& state);
 protobuf::Light to_protobuf(const std::shared_ptr<Light>& light);
 protobuf::Sampler to_protobuf(const std::shared_ptr<Sampler>& sampler);
+protobuf::Camera to_protobuf(const std::shared_ptr<Camera>& camera);
 
 Point2i from_protobuf(const protobuf::Point2i& point);
 Point2f from_protobuf(const protobuf::Point2f& point);
@@ -47,6 +48,7 @@ RayState::TreeletNode from_protobuf(const protobuf::VisitNode& node);
 RayState from_protobuf(const protobuf::RayState& state);
 std::shared_ptr<Light> from_protobuf(const protobuf::Light& light);
 std::shared_ptr<Sampler> from_protobuf(const protobuf::Sampler& sampler);
+std::shared_ptr<Camera> from_protobuf(const protobuf::Camera& camera);
 
 }  // namespace pbrt
 
