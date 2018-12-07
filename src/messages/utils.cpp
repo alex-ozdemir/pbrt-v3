@@ -515,7 +515,7 @@ protobuf::Sampler sampler::to_protobuf(const string& name,
 }
 
 shared_ptr<Sampler> sampler::from_protobuf(const protobuf::Sampler& ps) {
-    Sampler * sampler;
+    Sampler* sampler;
 
     const string& name = ps.name();
     const ParamSet paramSet = pbrt::from_protobuf(ps.paramset());
@@ -538,6 +538,83 @@ shared_ptr<Sampler> sampler::from_protobuf(const protobuf::Sampler& ps) {
     }
 
     return shared_ptr<Sampler>(sampler);
+}
+
+protobuf::Camera camera::to_protobuf(const string& name, const ParamSet& params,
+                                     const AnimatedTransform& cam2world,
+                                     const Float transformStart,
+                                     const Float transformEnd,
+                                     const string& filmName,
+                                     const ParamSet& filmParams,
+                                     const string& filterName,
+                                     const ParamSet& filterParams) {
+    protobuf::Camera_Film_Filter proto_filter;
+    protobuf::Camera_Film proto_film;
+    protobuf::Camera proto_camera;
+
+    /* (1) the filter */
+    proto_filter.set_name(name);
+    *proto_filter.mutable_paramset() = pbrt::to_protobuf(filterParams);
+
+    /* (2) the film */
+    proto_film.set_name(name);
+    *proto_film.mutable_paramset() = pbrt::to_protobuf(filmParams);
+    *proto_film.mutable_filter() = proto_filter;
+
+    /* (3) the camera */
+    proto_camera.set_name(name);
+    *proto_camera.mutable_paramset() = pbrt::to_protobuf(params);
+    *proto_camera.mutable_camera_to_world() = pbrt::to_protobuf(cam2world);
+    proto_camera.set_transform_start(transformStart);
+    proto_camera.set_transform_end(transformEnd);
+    *proto_camera.mutable_film() = proto_film;
+
+    return proto_camera;
+}
+
+shared_ptr<Camera> camera::from_protobuf(const protobuf::Camera& proto_camera) {
+    /* (1) create the filter */
+    Filter* filterPtr = nullptr;
+
+    const auto& proto_filter = proto_camera.film().filter();
+    const auto& filter_name = proto_filter.name();
+    const auto filter_paramset = pbrt::from_protobuf(proto_filter.paramset());
+
+    if (filter_name == "box") {
+        filter = CreateBoxFilter(filter_paramset);
+    } else if (filter_name == "gaussian") {
+        filter = CreateGaussianFilter(filter_paramset);
+    } else if (filter_name == "mitchell") {
+        filter = CreateMitchellFilter(filter_paramset);
+    } else if (filter_name == "sinc") {
+        filter = CreateSincFilter(filter_paramset);
+    } else if (filter_name == "triangle") {
+        filter = CreateTriangleFilter(filter_paramset);
+    } else {
+        throw runtime_error("unknown filter name");
+    }
+
+    auto filter = unique_ptr<Filter>(filter);
+
+    /* (2) create the film */
+    Film* film = nullptr;
+
+    const auto& proto_film = proto_camera.film();
+    const auto& film_name = proto_film.name();
+    const auto film_paramset = pbrt::from_protobuf(proto_film.paramset());
+
+    if (film_name == "image") {
+        film = CreateFilm(paramSet, move(filter));
+    } else {
+        throw runtime_error("unknown film name");
+    }
+
+    /* (3) create the camera */
+    Camera *camera = nullptr;
+
+    const auto& name = proto_camera.name();
+    const auto paramset = pbrt::from_protobuf(proto_camera.paramset());
+    
 }
 
 }  // namespace pbrt

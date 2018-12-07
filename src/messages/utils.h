@@ -51,21 +51,33 @@ ParamSet from_protobuf(const protobuf::ParamSet& paramset);
 
 namespace light {
 
+std::shared_ptr<Light> from_protobuf(const protobuf::Light& light);
 protobuf::Light to_protobuf(const std::string& name, const ParamSet& params,
                             const Transform& light2world);
-
-std::shared_ptr<Light> from_protobuf(const protobuf::Light& light);
 
 }  // namespace light
 
 namespace sampler {
 
+std::shared_ptr<Sampler> from_protobuf(const protobuf::Sampler& sampler);
 protobuf::Sampler to_protobuf(const std::string& name, const ParamSet& params,
                               const Bounds2i& sampleBounds);
 
-std::shared_ptr<Sampler> from_protobuf(const protobuf::Sampler& sampler);
-
 }  // namespace sampler
+
+namespace camera {
+
+std::shared_ptr<Camera> from_protobuf(const protobuf::Camera& camera);
+protobuf::Camera to_protobuf(const std::string& name, const ParamSet& params,
+                             const AnimatedTransform& cam2world,
+                             const Float transformStart,
+                             const Float transformEnd,
+                             const std::string& filmName,
+                             const ParamSet& filmParams,
+                             const std::string& filterName,
+                             const ParamSet& filterParams);
+
+}  // namespace camera
 
 }  // namespace pbrt
 
