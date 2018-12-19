@@ -295,7 +295,7 @@ void SamplerIntegrator::Render(const Scene &scene) {
                     ++nCameraRays;
 
                     _sfp_.resetPath();
-                    (_sfp_.writer) << "- SAMPLE " << _sadjadSampleIndex++ << std::endl;
+                    _sfp_.writer << "SAMPLE " << _sadjadSampleIndex++ << std::endl;
 
                     // Evaluate radiance along camera ray
                     Spectrum L(0.f);

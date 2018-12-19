@@ -53,20 +53,20 @@ struct SadjadProfile {
     }
 
     void writeRayStats(const bool shadowRay) {
-        writer << "-- RAY_DEPTH " << pathLength << (shadowRay ? " (SHADOW)" : "")
+        writer << "RAY_DEPTH " << pathLength << (shadowRay ? " (SHADOW)" : "")
                << '\n'
-               << "--- UNIQUE_NODES " << visitedNodePerRay.size() << '\n'
-               << "--- UNIQUE_PRIMS " << visitedPrimPerRay.size() << '\n'
-               << "--- NODES " << visitedNodePerRayCount << '\n'
-               << "--- PRIMS " << visitedPrimPerRayCount << '\n';
+               << "UNIQUE_NODES " << visitedNodePerRay.size() << '\n'
+               << "UNIQUE_PRIMS " << visitedPrimPerRay.size() << '\n'
+               << "NODES " << visitedNodePerRayCount << '\n'
+               << "PRIMS " << visitedPrimPerRayCount << '\n';
     }
 
     void WritePathStats() {
-        writer << "-- TOTAL_UNIQUE_NODES " << visitedNodePerPath.size() << '\n'
-               << "-- TOTAL_UNIQUE_PRIMS " << visitedPrimPerPath.size() << '\n'
-               << "-- TOTAL_NODES " << visitedNodePerPathCount << '\n'
-               << "-- TOTAL_PRIMS " << visitedPrimPerPathCount << '\n'
-               << "-- TOTAL_PATH_LEN " << pathLength << '\n';
+        writer << "TOTAL_UNIQUE_NODES " << visitedNodePerPath.size() << '\n'
+               << "TOTAL_UNIQUE_PRIMS " << visitedPrimPerPath.size() << '\n'
+               << "TOTAL_NODES " << visitedNodePerPathCount << '\n'
+               << "TOTAL_PRIMS " << visitedPrimPerPathCount << '\n'
+               << "TOTAL_PATH_LEN " << pathLength << '\n';
     }
 };
 

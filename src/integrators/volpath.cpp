@@ -73,7 +73,7 @@ Spectrum VolPathIntegrator::Li(const RayDifferential &r, const Scene &scene,
     Float etaScale = 1;
 
     for (bounces = 0;; ++bounces) {
-        _sfp_.pathLength++;
+        _sfp_.pathLength = bounces;
 
         // Intersect _ray_ with scene and store intersection in _isect_
         SurfaceInteraction isect;

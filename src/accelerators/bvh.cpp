@@ -681,10 +681,10 @@ bool BVHAccel::Intersect(const Ray &ray, SurfaceInteraction *isect) const {
 
         // Check ray against BVH node
         if (node->bounds.IntersectP(ray, invDir, dirIsNeg)) {
-            _sfp_.visitedPrimPerRayCount += node->nPrimitives;
-            _sfp_.visitedPrimPerPathCount += node->nPrimitives;
             if (node->nPrimitives > 0) {
                 // Intersect ray with primitives in leaf BVH node
+                _sfp_.visitedPrimPerRayCount += node->nPrimitives;
+                _sfp_.visitedPrimPerPathCount += node->nPrimitives;
                 for (int i = 0; i < node->nPrimitives; ++i) {
                     _sfp_.visitedPrimPerRay.insert(&primitives[node->primitivesOffset + i]);
                     _sfp_.visitedPrimPerPath.insert(&primitives[node->primitivesOffset + i]);
@@ -722,9 +722,17 @@ bool BVHAccel::IntersectP(const Ray &ray) const {
     int toVisitOffset = 0, currentNodeIndex = 0;
     while (true) {
         const LinearBVHNode *node = &nodes[currentNodeIndex];
+
+        _sfp_.visitedNodePerRay.insert(node);
+        _sfp_.visitedNodePerPath.insert(node);
+        _sfp_.visitedNodePerRayCount++;
+        _sfp_.visitedNodePerPathCount++;
+
         if (node->bounds.IntersectP(ray, invDir, dirIsNeg)) {
             // Process BVH node _node_ for traversal
             if (node->nPrimitives > 0) {
+                _sfp_.visitedPrimPerRayCount += node->nPrimitives;
+                _sfp_.visitedPrimPerPathCount += node->nPrimitives;
                 for (int i = 0; i < node->nPrimitives; ++i) {
                     if (primitives[node->primitivesOffset + i]->IntersectP(
                             ray)) {
