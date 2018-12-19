@@ -39,6 +39,9 @@
 #include "parallel.h"
 #include <algorithm>
 
+#include "sadjad/stats.h"
+using namespace global;
+
 namespace pbrt {
 
 STAT_MEMORY_COUNTER("Memory/BVH tree", treeBytes);
@@ -670,14 +673,25 @@ bool BVHAccel::Intersect(const Ray &ray, SurfaceInteraction *isect) const {
     int nodesToVisit[64];
     while (true) {
         const LinearBVHNode *node = &nodes[currentNodeIndex];
+
+        _sfp_.visitedNodePerRay.insert(node);
+        _sfp_.visitedNodePerPath.insert(node);
+        _sfp_.visitedNodePerRayCount++;
+        _sfp_.visitedNodePerPathCount++;
+
         // Check ray against BVH node
         if (node->bounds.IntersectP(ray, invDir, dirIsNeg)) {
+            _sfp_.visitedPrimPerRayCount += node->nPrimitives;
+            _sfp_.visitedPrimPerPathCount += node->nPrimitives;
             if (node->nPrimitives > 0) {
                 // Intersect ray with primitives in leaf BVH node
-                for (int i = 0; i < node->nPrimitives; ++i)
+                for (int i = 0; i < node->nPrimitives; ++i) {
+                    _sfp_.visitedPrimPerRay.insert(&primitives[node->primitivesOffset + i]);
+                    _sfp_.visitedPrimPerPath.insert(&primitives[node->primitivesOffset + i]);
                     if (primitives[node->primitivesOffset + i]->Intersect(
                             ray, isect))
                         hit = true;
+                }
                 if (toVisitOffset == 0) break;
                 currentNodeIndex = nodesToVisit[--toVisitOffset];
             } else {

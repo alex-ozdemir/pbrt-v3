@@ -40,6 +40,9 @@
 #include "scene.h"
 #include "stats.h"
 
+#include "sadjad/stats.h"
+using namespace global;
+
 namespace pbrt {
 
 STAT_INT_DISTRIBUTION("Integrator/Path length", pathLength);
@@ -70,9 +73,13 @@ Spectrum VolPathIntegrator::Li(const RayDifferential &r, const Scene &scene,
     Float etaScale = 1;
 
     for (bounces = 0;; ++bounces) {
+        _sfp_.pathLength++;
+
         // Intersect _ray_ with scene and store intersection in _isect_
         SurfaceInteraction isect;
         bool foundIntersection = scene.Intersect(ray, &isect);
+        _sfp_.writeRayStats(false);
+        _sfp_.resetRay();
 
         // Sample the participating medium, if present
         MediumInteraction mi;
@@ -90,6 +97,9 @@ Spectrum VolPathIntegrator::Li(const RayDifferential &r, const Scene &scene,
                 lightDistribution->Lookup(mi.p);
             L += beta * UniformSampleOneLight(mi, scene, arena, sampler, true,
                                               lightDistrib);
+
+            _sfp_.writeRayStats(true);
+            _sfp_.resetRay();
 
             Vector3f wo = -ray.d, wi;
             mi.phase->Sample_p(wo, &wi, sampler.Get2D());
@@ -127,6 +137,9 @@ Spectrum VolPathIntegrator::Li(const RayDifferential &r, const Scene &scene,
             L += beta * UniformSampleOneLight(isect, scene, arena, sampler,
                                               true, lightDistrib);
 
+            _sfp_.writeRayStats(true);
+            _sfp_.resetRay();
+
             // Sample BSDF to get new path direction
             Vector3f wo = -ray.d, wi;
             Float pdf;
@@ -162,6 +175,9 @@ Spectrum VolPathIntegrator::Li(const RayDifferential &r, const Scene &scene,
                 L += beta *
                      UniformSampleOneLight(pi, scene, arena, sampler, true,
                                            lightDistribution->Lookup(pi.p));
+
+                _sfp_.writeRayStats(true);
+                _sfp_.resetRay();
 
                 // Account for the indirect subsurface scattering component
                 Spectrum f = pi.bsdf->Sample_f(pi.wo, &wi, sampler.Get2D(),

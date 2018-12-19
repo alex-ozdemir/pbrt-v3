@@ -72,6 +72,7 @@ class Sampler {
 
     // Sampler Public Data
     const int64_t samplesPerPixel;
+    size_t idx{0};
 
   protected:
     // Sampler Protected Data

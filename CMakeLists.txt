@@ -69,14 +69,17 @@ SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 ###########################################################################
 # Annoying compiler-specific details
 
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 IF(CMAKE_COMPILER_IS_GNUCXX)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-conversion-null")
 ELSEIF(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-register")
 ELSEIF(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
   FIND_PROGRAM(XIAR xiar)
   IF(XIAR)
@@ -199,7 +202,7 @@ int main() {
    fstat(fd, &s);
    size_t len = s.st_size;
    void *ptr = mmap(0, len, PROT_READ, MAP_FILE | MAP_SHARED, fd, 0);
-   munmap(ptr, len);   
+   munmap(ptr, len);
 }
 " HAVE_MMAP )
 if ( HAVE_MMAP )
@@ -461,6 +464,7 @@ FILE ( GLOB PBRT_SOURCE
   src/shapes/*
   src/textures/*
   src/media/*
+  src/sadjad/*
   )
 
 INCLUDE_DIRECTORIES ( src )

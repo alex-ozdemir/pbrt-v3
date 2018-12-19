@@ -39,6 +39,9 @@
 #include <thread>
 #include <condition_variable>
 
+#include "sadjad/stats.h"
+using namespace global;
+
 namespace pbrt {
 
 // Parallel Local Definitions
@@ -112,6 +115,8 @@ static std::condition_variable workListCondition;
 static void workerThreadFunc(int tIndex, std::shared_ptr<Barrier> barrier) {
     LOG(INFO) << "Started execution in worker thread " << tIndex;
     ThreadIndex = tIndex;
+
+    _sfp_.init(ThreadIndex);
 
     // Give the profiler a chance to do per-thread initialization for
     // the worker thread before the profiling system actually stops running.
@@ -313,6 +318,7 @@ void ParallelInit() {
     // started until after all worker threads have done that.
     std::shared_ptr<Barrier> barrier = std::make_shared<Barrier>(nThreads);
 
+    _sfp_.init(0);
     // Launch one fewer worker thread than the total number we want doing
     // work, since the main thread helps out, too.
     for (int i = 0; i < nThreads - 1; ++i)

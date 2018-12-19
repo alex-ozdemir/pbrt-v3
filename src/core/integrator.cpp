@@ -43,6 +43,9 @@
 #include "camera.h"
 #include "stats.h"
 
+#include "sadjad/stats.h"
+using namespace global;
+
 namespace pbrt {
 
 STAT_COUNTER("Integrator/Camera rays traced", nCameraRays);
@@ -235,6 +238,7 @@ void SamplerIntegrator::Render(const Scene &scene) {
     const int tileSize = 16;
     Point2i nTiles((sampleExtent.x + tileSize - 1) / tileSize,
                    (sampleExtent.y + tileSize - 1) / tileSize);
+
     ProgressReporter reporter(nTiles.x * nTiles.y, "Rendering");
     {
         ParallelFor2D([&](Point2i tile) {
@@ -266,12 +270,16 @@ void SamplerIntegrator::Render(const Scene &scene) {
                     tileSampler->StartPixel(pixel);
                 }
 
+                (_sfp_.writer) << "PIXEL " << pixel << std::endl;
+
                 // Do this check after the StartPixel() call; this keeps
                 // the usage of RNG values from (most) Samplers that use
                 // RNGs consistent, which improves reproducability /
                 // debugging.
                 if (!InsideExclusive(pixel, pixelBounds))
                     continue;
+
+                size_t _sadjadSampleIndex = 0;
 
                 do {
                     // Initialize _CameraSample_ for current sample
@@ -286,9 +294,14 @@ void SamplerIntegrator::Render(const Scene &scene) {
                         1 / std::sqrt((Float)tileSampler->samplesPerPixel));
                     ++nCameraRays;
 
+                    _sfp_.resetPath();
+                    (_sfp_.writer) << "- SAMPLE " << _sadjadSampleIndex++ << std::endl;
+
                     // Evaluate radiance along camera ray
                     Spectrum L(0.f);
                     if (rayWeight > 0) L = Li(ray, scene, *tileSampler, arena);
+
+                    _sfp_.WritePathStats();
 
                     // Issue warning if unexpected radiance value returned
                     if (L.HasNaNs()) {
