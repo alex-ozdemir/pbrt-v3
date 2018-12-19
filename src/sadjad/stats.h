@@ -12,12 +12,16 @@
 struct SadjadProfile {
     std::unordered_set<const void *> visitedNodePerRay{};
     std::unordered_set<const void *> visitedNodePerPath{};
+    std::unordered_set<const void *> visitedNodePerTile{};
     std::unordered_set<const void *> visitedPrimPerRay{};
     std::unordered_set<const void *> visitedPrimPerPath{};
+    std::unordered_set<const void *> visitedPrimPerTile{};
     size_t visitedNodePerRayCount{0};
     size_t visitedPrimPerRayCount{0};
     size_t visitedNodePerPathCount{0};
     size_t visitedPrimPerPathCount{0};
+    size_t visitedNodePerTileCount{0};
+    size_t visitedPrimPerTileCount{0};
     size_t pathLength{0};
     std::ofstream writer;
 
@@ -33,6 +37,13 @@ struct SadjadProfile {
         initialized = true;
     }
 
+    void resetRay() {
+        visitedNodePerRay.clear();
+        visitedPrimPerRay.clear();
+        visitedNodePerRayCount = 0;
+        visitedPrimPerRayCount = 0;
+    }
+
     void resetPath() {
         visitedNodePerRay.clear();
         visitedNodePerPath.clear();
@@ -45,14 +56,24 @@ struct SadjadProfile {
         pathLength = 0;
     }
 
-    void resetRay() {
+    void resetTile() {
         visitedNodePerRay.clear();
+        visitedNodePerPath.clear();
+        visitedNodePerTile.clear();
         visitedPrimPerRay.clear();
+        visitedPrimPerPath.clear();
+        visitedPrimPerTile.clear();
         visitedNodePerRayCount = 0;
+        visitedNodePerPathCount = 0;
+        visitedNodePerTileCount = 0;
         visitedPrimPerRayCount = 0;
+        visitedPrimPerPathCount = 0;
+        visitedPrimPerTileCount = 0;
+        pathLength = 0;
     }
 
     void writeRayStats(const bool shadowRay) {
+        return;
         writer << "RAY_DEPTH " << pathLength << (shadowRay ? " (SHADOW)" : "")
                << '\n'
                << "UNIQUE_NODES " << visitedNodePerRay.size() << '\n'
@@ -62,11 +83,19 @@ struct SadjadProfile {
     }
 
     void WritePathStats() {
-        writer << "TOTAL_UNIQUE_NODES " << visitedNodePerPath.size() << '\n'
-               << "TOTAL_UNIQUE_PRIMS " << visitedPrimPerPath.size() << '\n'
-               << "TOTAL_NODES " << visitedNodePerPathCount << '\n'
-               << "TOTAL_PRIMS " << visitedPrimPerPathCount << '\n'
-               << "TOTAL_PATH_LEN " << pathLength << '\n';
+        return;
+        writer << "PATH_UNIQUE_NODES " << visitedNodePerPath.size() << '\n'
+               << "PATH_UNIQUE_PRIMS " << visitedPrimPerPath.size() << '\n'
+               << "PATH_NODES " << visitedNodePerPathCount << '\n'
+               << "PATH_PRIMS " << visitedPrimPerPathCount << '\n'
+               << "PATH_PATH_LEN " << pathLength << '\n';
+    }
+
+    void writeTileStats() {
+        writer << "TILE_UNIQUE_NODES " << visitedNodePerTile.size() << '\n'
+               << "TILE_UNIQUE_PRIMS " << visitedPrimPerTile.size() << '\n'
+               << "TILE_NODES " << visitedNodePerTileCount << '\n'
+               << "TILE_PRIMS " << visitedPrimPerTileCount << '\n';
     }
 };
 

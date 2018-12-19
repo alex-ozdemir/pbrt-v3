@@ -259,6 +259,9 @@ void SamplerIntegrator::Render(const Scene &scene) {
             Bounds2i tileBounds(Point2i(x0, y0), Point2i(x1, y1));
             LOG(INFO) << "Starting image tile " << tileBounds;
 
+            _sfp_.writer << "TILE " << tileBounds << '\n';
+            _sfp_.resetTile();
+
             // Get _FilmTile_ for tile
             std::unique_ptr<FilmTile> filmTile =
                 camera->film->GetFilmTile(tileBounds);
@@ -270,7 +273,7 @@ void SamplerIntegrator::Render(const Scene &scene) {
                     tileSampler->StartPixel(pixel);
                 }
 
-                (_sfp_.writer) << "PIXEL " << pixel << std::endl;
+                (_sfp_.writer) << "PIXEL " << pixel << '\n';
 
                 // Do this check after the StartPixel() call; this keeps
                 // the usage of RNG values from (most) Samplers that use
@@ -338,6 +341,7 @@ void SamplerIntegrator::Render(const Scene &scene) {
                 } while (tileSampler->StartNextSample());
             }
             LOG(INFO) << "Finished image tile " << tileBounds;
+            _sfp_.writeTileStats();
 
             // Merge image tile into _Film_
             camera->film->MergeFilmTile(std::move(filmTile));
