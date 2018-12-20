@@ -235,7 +235,7 @@ void SamplerIntegrator::Render(const Scene &scene) {
     // Compute number of tiles, _nTiles_, to use for parallel rendering
     Bounds2i sampleBounds = camera->film->GetSampleBounds();
     Vector2i sampleExtent = sampleBounds.Diagonal();
-    const int tileSize = 16;
+    const int tileSize = PbrtOptions.tileSize;
     Point2i nTiles((sampleExtent.x + tileSize - 1) / tileSize,
                    (sampleExtent.y + tileSize - 1) / tileSize);
 
@@ -273,7 +273,7 @@ void SamplerIntegrator::Render(const Scene &scene) {
                     tileSampler->StartPixel(pixel);
                 }
 
-                (_sfp_.writer) << "PIXEL " << pixel << '\n';
+                // (_sfp_.writer) << "PIXEL " << pixel << '\n';
 
                 // Do this check after the StartPixel() call; this keeps
                 // the usage of RNG values from (most) Samplers that use
@@ -298,7 +298,7 @@ void SamplerIntegrator::Render(const Scene &scene) {
                     ++nCameraRays;
 
                     _sfp_.resetPath();
-                    _sfp_.writer << "SAMPLE " << _sadjadSampleIndex++ << std::endl;
+                    // _sfp_.writer << "SAMPLE " << _sadjadSampleIndex++ << std::endl;
 
                     // Evaluate radiance along camera ray
                     Spectrum L(0.f);

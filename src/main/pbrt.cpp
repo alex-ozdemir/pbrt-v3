@@ -47,6 +47,7 @@ static void usage(const char *msg = nullptr) {
     fprintf(stderr, R"(usage: pbrt [<options>] <filename.pbrt...>
 Rendering options:
   --cropwindow <x0,x1,y0,y1> Specify an image crop window.
+  --tilesize <num>     Use specified number of threads for rendering.
   --help               Print this help text.
   --nthreads <num>     Use specified number of threads for rendering.
   --outfile <filename> Write the final image to the given filename.
@@ -87,7 +88,13 @@ int main(int argc, char *argv[]) {
             options.nThreads = atoi(argv[++i]);
         } else if (!strncmp(argv[i], "--nthreads=", 11)) {
             options.nThreads = atoi(&argv[i][11]);
-        } else if (!strcmp(argv[i], "--outfile") || !strcmp(argv[i], "-outfile")) {
+        } else if (!strcmp(argv[i], "--tilesize") || !strcmp(argv[i], "-tilesize")) {
+            if (i + 1 == argc)
+                usage("missing value after --tilesize argument");
+            options.tileSize = atoi(argv[++i]);
+        } else if (!strncmp(argv[i], "--tilesize=", 11)) {
+            options.tileSize = atoi(&argv[i][11]);
+        }else if (!strcmp(argv[i], "--outfile") || !strcmp(argv[i], "-outfile")) {
             if (i + 1 == argc)
                 usage("missing value after --outfile argument");
             options.imageFile = argv[++i];

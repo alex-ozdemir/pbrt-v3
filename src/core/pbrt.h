@@ -176,6 +176,7 @@ struct Options {
         cropWindow[1][1] = -1;
     }
     int nThreads = 0;
+    int tileSize = 16;
     bool quickRender = false;
     bool quiet = false;
     bool cat = false, toPly = false;
