@@ -58,7 +58,7 @@ struct FilmTilePixel {
 class Film {
   public:
     // Film Public Methods
-    Film(const Point2i &resolution, const Bounds2f &cropWindow,
+    Film(const Point2i &resolution, const Bounds2i &cropWindow,
          std::unique_ptr<Filter> filter, Float diagonal,
          const std::string &filename, Float scale,
          Float maxSampleLuminance = Infinity);

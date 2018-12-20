@@ -94,10 +94,10 @@ int main(int argc, char *argv[]) {
         } else if (!strcmp(argv[i], "--cropwindow") || !strcmp(argv[i], "-cropwindow")) {
             if (i + 4 >= argc)
                 usage("missing value after --cropwindow argument");
-            options.cropWindow[0][0] = atof(argv[++i]);
-            options.cropWindow[0][1] = atof(argv[++i]);
-            options.cropWindow[1][0] = atof(argv[++i]);
-            options.cropWindow[1][1] = atof(argv[++i]);
+            options.cropWindow[0][0] = atoi(argv[++i]);
+            options.cropWindow[0][1] = atoi(argv[++i]);
+            options.cropWindow[1][0] = atoi(argv[++i]);
+            options.cropWindow[1][1] = atoi(argv[++i]);
         } else if (!strncmp(argv[i], "--outfile=", 10)) {
             options.imageFile = &argv[i][10];
         } else if (!strcmp(argv[i], "--logdir") || !strcmp(argv[i], "-logdir")) {

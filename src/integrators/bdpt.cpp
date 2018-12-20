@@ -334,7 +334,7 @@ void BDPTIntegrator::Render(const Scene &scene) {
 
                 weightFilms[BufferIndex(s, t)] = std::unique_ptr<Film>(new Film(
                     film->fullResolution,
-                    Bounds2f(Point2f(0, 0), Point2f(1, 1)),
+                    Bounds2i(Point2i(-1, -1), Point2i(-1, -1)),
                     std::unique_ptr<Filter>(CreateBoxFilter(ParamSet())),
                     film->diagonal * 1000, filename, 1.f));
             }

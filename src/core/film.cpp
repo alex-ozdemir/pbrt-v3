@@ -42,7 +42,7 @@ namespace pbrt {
 STAT_MEMORY_COUNTER("Memory/Film pixels", filmPixelMemory);
 
 // Film Method Definitions
-Film::Film(const Point2i &resolution, const Bounds2f &cropWindow,
+Film::Film(const Point2i &resolution, const Bounds2i &cropWindow,
            std::unique_ptr<Filter> filt, Float diagonal,
            const std::string &filename, Float scale, Float maxSampleLuminance)
     : fullResolution(resolution),
@@ -52,11 +52,13 @@ Film::Film(const Point2i &resolution, const Bounds2f &cropWindow,
       scale(scale),
       maxSampleLuminance(maxSampleLuminance) {
     // Compute film image bounds
-    croppedPixelBounds =
-        Bounds2i(Point2i(std::ceil(fullResolution.x * cropWindow.pMin.x),
-                         std::ceil(fullResolution.y * cropWindow.pMin.y)),
-                 Point2i(std::ceil(fullResolution.x * cropWindow.pMax.x),
-                         std::ceil(fullResolution.y * cropWindow.pMax.y)));
+    if (cropWindow.pMin.x == -1) {
+        croppedPixelBounds = Bounds2i(Point2i(0, 0), fullResolution);
+    }
+    else {
+        croppedPixelBounds = cropWindow;
+    }
+
     LOG(INFO) << "Created film with full resolution " << resolution <<
         ". Crop window of " << cropWindow << " -> croppedPixelBounds " <<
         croppedPixelBounds;
@@ -226,21 +228,22 @@ Film *CreateFilm(const ParamSet &params, std::unique_ptr<Filter> filter) {
     int yres = params.FindOneInt("yresolution", 720);
     if (PbrtOptions.quickRender) xres = std::max(1, xres / 4);
     if (PbrtOptions.quickRender) yres = std::max(1, yres / 4);
-    Bounds2f crop;
+    Bounds2i crop;
     int cwi;
     const Float *cr = params.FindFloat("cropwindow", &cwi);
     if (cr && cwi == 4) {
-        crop.pMin.x = Clamp(std::min(cr[0], cr[1]), 0.f, 1.f);
+        Error("NOT SUPPORTED");
+        /* crop.pMin.x = Clamp(std::min(cr[0], cr[1]), 0.f, 1.f);
         crop.pMax.x = Clamp(std::max(cr[0], cr[1]), 0.f, 1.f);
         crop.pMin.y = Clamp(std::min(cr[2], cr[3]), 0.f, 1.f);
-        crop.pMax.y = Clamp(std::max(cr[2], cr[3]), 0.f, 1.f);
+        crop.pMax.y = Clamp(std::max(cr[2], cr[3]), 0.f, 1.f); */
     } else if (cr)
         Error("%d values supplied for \"cropwindow\". Expected 4.", cwi);
     else
-        crop = Bounds2f(Point2f(Clamp(PbrtOptions.cropWindow[0][0], 0, 1),
-                                Clamp(PbrtOptions.cropWindow[1][0], 0, 1)),
-                        Point2f(Clamp(PbrtOptions.cropWindow[0][1], 0, 1),
-                                Clamp(PbrtOptions.cropWindow[1][1], 0, 1)));
+        crop = Bounds2i(Point2i(PbrtOptions.cropWindow[0][0],
+                                PbrtOptions.cropWindow[1][0]),
+                        Point2i(PbrtOptions.cropWindow[0][1],
+                                PbrtOptions.cropWindow[1][1]));
 
     Float scale = params.FindOneFloat("scale", 1.);
     Float diagonal = params.FindOneFloat("diagonal", 35.);
