@@ -223,6 +223,8 @@ BVHAccel::BVHAccel(std::vector<std::shared_ptr<Primitive>> p,
                  primitives.size() * sizeof(primitives[0]);
     nodes = AllocAligned<LinearBVHNode>(totalNodes);
     int offset = 0;
+
+    _sfp_.addBVH(nodes, totalNodes);
     flattenBVHTree(root, &offset);
     CHECK_EQ(totalNodes, offset);
 }
@@ -673,7 +675,7 @@ bool BVHAccel::Intersect(const Ray &ray, SurfaceInteraction *isect) const {
     int nodesToVisit[64];
     while (true) {
         const LinearBVHNode *node = &nodes[currentNodeIndex];
-        _sfp_.registerNode(node);
+        _sfp_.registerNode(nodes, currentNodeIndex);
 
         // Check ray against BVH node
         if (node->bounds.IntersectP(ray, invDir, dirIsNeg)) {
@@ -714,7 +716,7 @@ bool BVHAccel::IntersectP(const Ray &ray) const {
     int toVisitOffset = 0, currentNodeIndex = 0;
     while (true) {
         const LinearBVHNode *node = &nodes[currentNodeIndex];
-        _sfp_.registerNode(node);
+        _sfp_.registerNode(nodes, currentNodeIndex);
 
         if (node->bounds.IntersectP(ray, invDir, dirIsNeg)) {
             // Process BVH node _node_ for traversal
