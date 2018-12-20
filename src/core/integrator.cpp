@@ -297,14 +297,9 @@ void SamplerIntegrator::Render(const Scene &scene) {
                         1 / std::sqrt((Float)tileSampler->samplesPerPixel));
                     ++nCameraRays;
 
-                    _sfp_.resetPath();
-                    // _sfp_.writer << "SAMPLE " << _sadjadSampleIndex++ << std::endl;
-
                     // Evaluate radiance along camera ray
                     Spectrum L(0.f);
                     if (rayWeight > 0) L = Li(ray, scene, *tileSampler, arena);
-
-                    _sfp_.WritePathStats();
 
                     // Issue warning if unexpected radiance value returned
                     if (L.HasNaNs()) {
@@ -341,6 +336,7 @@ void SamplerIntegrator::Render(const Scene &scene) {
                 } while (tileSampler->StartNextSample());
             }
             LOG(INFO) << "Finished image tile " << tileBounds;
+            _sfp_.writeRayStats();
             _sfp_.writeTileStats();
 
             // Merge image tile into _Film_

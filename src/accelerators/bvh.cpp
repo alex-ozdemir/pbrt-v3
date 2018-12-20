@@ -673,25 +673,13 @@ bool BVHAccel::Intersect(const Ray &ray, SurfaceInteraction *isect) const {
     int nodesToVisit[64];
     while (true) {
         const LinearBVHNode *node = &nodes[currentNodeIndex];
-
-        _sfp_.visitedNodePerRay.insert(node);
-        _sfp_.visitedNodePerPath.insert(node);
-        _sfp_.visitedNodePerTile.insert(node);
-        _sfp_.visitedNodePerRayCount++;
-        _sfp_.visitedNodePerPathCount++;
-        _sfp_.visitedNodePerTileCount++;
+        _sfp_.registerNode(node);
 
         // Check ray against BVH node
         if (node->bounds.IntersectP(ray, invDir, dirIsNeg)) {
             if (node->nPrimitives > 0) {
                 // Intersect ray with primitives in leaf BVH node
-                _sfp_.visitedPrimPerRayCount += node->nPrimitives;
-                _sfp_.visitedPrimPerPathCount += node->nPrimitives;
-                _sfp_.visitedPrimPerTileCount += node->nPrimitives;
                 for (int i = 0; i < node->nPrimitives; ++i) {
-                    _sfp_.visitedPrimPerRay.insert(&primitives[node->primitivesOffset + i]);
-                    _sfp_.visitedPrimPerPath.insert(&primitives[node->primitivesOffset + i]);
-                    _sfp_.visitedPrimPerTile.insert(&primitives[node->primitivesOffset + i]);
                     if (primitives[node->primitivesOffset + i]->Intersect(
                             ray, isect))
                         hit = true;
@@ -726,24 +714,12 @@ bool BVHAccel::IntersectP(const Ray &ray) const {
     int toVisitOffset = 0, currentNodeIndex = 0;
     while (true) {
         const LinearBVHNode *node = &nodes[currentNodeIndex];
-
-        _sfp_.visitedNodePerRay.insert(node);
-        _sfp_.visitedNodePerPath.insert(node);
-        _sfp_.visitedNodePerTile.insert(node);
-        _sfp_.visitedNodePerRayCount++;
-        _sfp_.visitedNodePerPathCount++;
-        _sfp_.visitedNodePerTileCount++;
+        _sfp_.registerNode(node);
 
         if (node->bounds.IntersectP(ray, invDir, dirIsNeg)) {
             // Process BVH node _node_ for traversal
             if (node->nPrimitives > 0) {
-                _sfp_.visitedPrimPerRayCount += node->nPrimitives;
-                _sfp_.visitedPrimPerPathCount += node->nPrimitives;
-                _sfp_.visitedPrimPerTileCount += node->nPrimitives;
                 for (int i = 0; i < node->nPrimitives; ++i) {
-                    _sfp_.visitedPrimPerRay.insert(&primitives[node->primitivesOffset + i]);
-                    _sfp_.visitedPrimPerPath.insert(&primitives[node->primitivesOffset + i]);
-                    _sfp_.visitedPrimPerTile.insert(&primitives[node->primitivesOffset + i]);
                     if (primitives[node->primitivesOffset + i]->IntersectP(
                             ray)) {
                         return true;

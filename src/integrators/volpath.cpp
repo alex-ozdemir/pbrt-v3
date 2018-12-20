@@ -73,13 +73,12 @@ Spectrum VolPathIntegrator::Li(const RayDifferential &r, const Scene &scene,
     Float etaScale = 1;
 
     for (bounces = 0;; ++bounces) {
-        _sfp_.pathLength = bounces;
+        _sfp_.currentDepth = bounces;
 
         // Intersect _ray_ with scene and store intersection in _isect_
+        _sfp_.shadowRay = false;
         SurfaceInteraction isect;
         bool foundIntersection = scene.Intersect(ray, &isect);
-        _sfp_.writeRayStats(false);
-        _sfp_.resetRay();
 
         // Sample the participating medium, if present
         MediumInteraction mi;
@@ -95,11 +94,9 @@ Spectrum VolPathIntegrator::Li(const RayDifferential &r, const Scene &scene,
             // Handle scattering at point in medium for volumetric path tracer
             const Distribution1D *lightDistrib =
                 lightDistribution->Lookup(mi.p);
+            _sfp_.shadowRay = true;
             L += beta * UniformSampleOneLight(mi, scene, arena, sampler, true,
                                               lightDistrib);
-
-            _sfp_.writeRayStats(true);
-            _sfp_.resetRay();
 
             Vector3f wo = -ray.d, wi;
             mi.phase->Sample_p(wo, &wi, sampler.Get2D());
@@ -134,11 +131,9 @@ Spectrum VolPathIntegrator::Li(const RayDifferential &r, const Scene &scene,
             // contribution
             const Distribution1D *lightDistrib =
                 lightDistribution->Lookup(isect.p);
+            _sfp_.shadowRay = true;
             L += beta * UniformSampleOneLight(isect, scene, arena, sampler,
                                               true, lightDistrib);
-
-            _sfp_.writeRayStats(true);
-            _sfp_.resetRay();
 
             // Sample BSDF to get new path direction
             Vector3f wo = -ray.d, wi;
@@ -172,12 +167,10 @@ Spectrum VolPathIntegrator::Li(const RayDifferential &r, const Scene &scene,
 
                 // Account for the attenuated direct subsurface scattering
                 // component
+                _sfp_.shadowRay = true;
                 L += beta *
                      UniformSampleOneLight(pi, scene, arena, sampler, true,
                                            lightDistribution->Lookup(pi.p));
-
-                _sfp_.writeRayStats(true);
-                _sfp_.resetRay();
 
                 // Account for the indirect subsurface scattering component
                 Spectrum f = pi.bsdf->Sample_f(pi.wo, &wi, sampler.Get2D(),
