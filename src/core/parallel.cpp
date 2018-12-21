@@ -144,6 +144,7 @@ static void workerThreadFunc(int tIndex, std::shared_ptr<Barrier> barrier) {
         } else if (!workList) {
             // Sleep until there are more tasks to run
             workListCondition.wait(lock);
+            _sfp_.initBVHs(_bvhs_);
         } else {
             // Get work from _workList_ and run loop iterations
             ParallelForLoop &loop = *workList;
@@ -251,6 +252,8 @@ int MaxThreadIndex() {
 
 void ParallelFor2D(std::function<void(Point2i)> func, const Point2i &count) {
     CHECK(threads.size() > 0 || MaxThreadIndex() == 1);
+
+    _sfp_.initBVHs(_bvhs_);
 
     if (threads.empty() || count.x * count.y <= 1) {
         for (int y = 0; y < count.y; ++y)

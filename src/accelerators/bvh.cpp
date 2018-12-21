@@ -224,7 +224,7 @@ BVHAccel::BVHAccel(std::vector<std::shared_ptr<Primitive>> p,
     nodes = AllocAligned<LinearBVHNode>(totalNodes);
     int offset = 0;
 
-    _sfp_.addBVH(nodes, totalNodes);
+    _bvhs_[nodes] = totalNodes;
     flattenBVHTree(root, &offset);
     CHECK_EQ(totalNodes, offset);
 }

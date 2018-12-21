@@ -12,6 +12,7 @@
 
 struct SadjadProfile {
     using NodeUseCount = std::unordered_map<const void *, std::vector<size_t>>;
+    bool initialized{false};
 
     std::ofstream writer;
     size_t currentDepth{0};
@@ -19,32 +20,38 @@ struct SadjadProfile {
 
     NodeUseCount nodeForTile{};
 
-    struct Depth {
+    /* struct Depth {
         NodeUseCount nodeForRay{};
         NodeUseCount nodeForShadowRay{};
-    } depth[11];
+    } depth[11]; */
 
     void init(const int tile) {
         writer = std::ofstream("/tmp/pbrt-" + std::to_string(tile) + ".log",
                                std::ios::trunc);
     }
 
-    void addBVH(const void *root, const size_t nodeCount) {
-        nodeForTile[root].resize(nodeCount, 0);
-        for (size_t i = 0; i < 11; i++) {
-            depth[i].nodeForRay[root].resize(nodeCount, 0);
-            depth[i].nodeForShadowRay[root].resize(nodeCount, 0);
+    void initBVHs(const std::unordered_map<const void *, size_t> &bvhs) {
+        if (initialized) return;
+
+        for (auto &kv : bvhs) {
+            nodeForTile[kv.first].resize(kv.second, 0);
+            /* for (size_t i = 0; i < 11; i++) {
+                depth[i].nodeForRay[kv.first].resize(kv.second, 0);
+                depth[i].nodeForShadowRay[kv.first].resize(kv.second, 0);
+            } */
         }
+
+        initialized = true;
     }
 
     void registerNode(const void *root, const size_t index) {
         nodeForTile[root][index]++;
 
-        if (shadowRay) {
+        /* if (shadowRay) {
             depth[currentDepth].nodeForShadowRay[root][index]++;
         } else {
             depth[currentDepth].nodeForRay[root][index]++;
-        }
+        }*/
     }
 
     void resetTile() {
@@ -52,7 +59,7 @@ struct SadjadProfile {
             std::fill(kv.second.begin(), kv.second.end(), 0);
         }
 
-        for (size_t i = 0; i < 11; i++) {
+        /* for (size_t i = 0; i < 11; i++) {
             for (auto &kv : depth[i].nodeForRay) {
                 std::fill(kv.second.begin(), kv.second.end(), 0);
             }
@@ -60,7 +67,7 @@ struct SadjadProfile {
             for (auto &kv : depth[i].nodeForShadowRay) {
                 std::fill(kv.second.begin(), kv.second.end(), 0);
             }
-        }
+        } */
     }
 
     std::pair<size_t, size_t> countUses(const NodeUseCount &nuc) {
@@ -78,7 +85,7 @@ struct SadjadProfile {
     }
 
     void writeRayStats() {
-        for (size_t i = 0; i < 11; i++) {
+        /* for (size_t i = 0; i < 11; i++) {
             auto rayStats = countUses(depth[i].nodeForRay);
             auto shadowRayStats = countUses(depth[i].nodeForShadowRay);
 
@@ -87,7 +94,7 @@ struct SadjadProfile {
                    << "UNIQUE_NODES_SHADOW " << shadowRayStats.first << '\n'
                    << "NODES " << rayStats.second << '\n'
                    << "NODES_SHADOW " << shadowRayStats.second << '\n';
-        }
+        } */
     }
 
     void writeTileStats() {
@@ -98,7 +105,8 @@ struct SadjadProfile {
 };
 
 namespace global {
+extern std::unordered_map<const void *, size_t> _bvhs_;
 extern thread_local SadjadProfile _sfp_;
-}
+}  // namespace global
 
 #endif /* PBRT_SADJAD_STATS_H */
