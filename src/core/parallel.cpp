@@ -144,10 +144,10 @@ static void workerThreadFunc(int tIndex, std::shared_ptr<Barrier> barrier) {
         } else if (!workList) {
             // Sleep until there are more tasks to run
             workListCondition.wait(lock);
-            _sfp_.initBVHs(_bvhs_);
         } else {
             // Get work from _workList_ and run loop iterations
             ParallelForLoop &loop = *workList;
+            _sfp_.initBVHs(_bvhs_);
 
             // Run a chunk of loop iterations for _loop_
 
