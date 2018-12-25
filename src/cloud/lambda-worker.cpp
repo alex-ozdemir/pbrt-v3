@@ -106,8 +106,9 @@ void LambdaWorker::generateRays(const Bounds2i& bounds) {
     }
 }
 
-bool LambdaWorker::process_message(const Message& message) {
-    cerr << ">> [msg:" << static_cast<int>(message.opcode()) << "]\n";
+bool LambdaWorker::processMessage(const Message& message) {
+    cerr << ">> [msg:" << Message::OPCODE_NAMES[to_underlying(message.opcode())]
+         << "]\n";
 
     switch (message.opcode()) {
     case OpCode::Hey:
@@ -215,7 +216,7 @@ void LambdaWorker::run() {
             Message message = move(messageParser.front());
             messageParser.pop();
 
-            if (!process_message(message)) {
+            if (!processMessage(message)) {
                 unprocessedMessages.push_back(move(message));
             }
         }
@@ -286,10 +287,11 @@ void LambdaWorker::run() {
         }
 
         if (!outQueue.empty()) {
-            if (peers.size() == 0) {
+            if (peers.size() == 0 && !peerRequested) {
                 Message message{OpCode::GetWorker, ""};
                 coordinatorConnection->enqueue_write(message.str());
-            } else {
+                peerRequested = true;
+            } else if (peers.size()) {
                 auto& peer = peers.begin()->second;
 
                 if (peer.state == Peer::State::Connected) {
@@ -297,8 +299,8 @@ void LambdaWorker::run() {
                         ostringstream oss;
                         protobuf::RecordWriter writer{&oss};
 
-                        while (oss.tellp() < 1'000) {
-                            auto ray = move(outQueue.front());
+                        while (oss.tellp() < 1'000 && !outQueue.empty()) {
+                            RayState ray = move(outQueue.front());
                             outQueue.pop_front();
                             writer.write(to_protobuf(ray));
                         }
