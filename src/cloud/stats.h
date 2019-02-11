@@ -5,7 +5,6 @@
 #include <cstdint>
 
 #include "cloud/manager.h"
-#include "cloud/lambda.h"
 
 namespace pbrt {
 
@@ -49,7 +48,7 @@ struct WorkerStats {
 
     RayStats aggregateStats;
     QueueStats queueStats;
-    std::map<SceneManager::ObjectKey, RayStats> objectStats{};
+    std::map<SceneManager::ObjectKey, RayStats> objectStats;
 
     std::map<std::string, double> timePerAction;
 
