@@ -425,6 +425,11 @@ bool LambdaMaster::processMessage(const uint64_t workerId,
         /* sort treelet load */
         int treeletID = 0;
         vector<tuple<uint64_t, uint64_t>> treeletLoads;
+        for (auto &kv : stats.objectStats) {
+            if ( kv.first.type == ObjectType::Treelet ) {
+              treeletStats[kv.first.id].merge(kv.second);
+            }
+        }
         for (auto &kv : workerStats.objectStats) {
             auto &rayStats = kv.second;
             uint64_t load = rayStats.waitingRays - rayStats.processedRays;
@@ -503,6 +508,11 @@ string LambdaMaster::getSummary() {
         << " | time: " << setfill('0') << setw(2) << (duration / 60) << ":"
         << setw(2) << (duration % 60);
     oss << endl;
+    oss << "# of rays processed, per treelet:" << endl;
+    for ( const auto & treeletEntry : treeletStats ) {
+        oss << treeletEntry.first << "\t" << treeletEntry.second.processedRays
+            << endl;
+    }
 
     return oss.str();
 }

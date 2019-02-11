@@ -90,7 +90,7 @@ WorkerStats::Recorder::~Recorder() {
 }
 
 WorkerStats::Recorder::Recorder(WorkerStats& stats_, const std::string& name_)
-    : stats(stats), name(name_) {
+    : stats(stats_), name(name_) {
     start = now();
 }
 
