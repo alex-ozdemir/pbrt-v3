@@ -234,14 +234,16 @@ LambdaMaster::LambdaMaster(const string &scenePath, const uint16_t listenPort,
             if (not worker.udpAddress.initialized() || not (worker.udpAddress.get() == addr)) {
                 worker.udpAddress.reset(move(addr));
                 initializedWorkers.insert(workerId);
-                for (WorkerId id : initializedWorkers) {
-                    if (id != workerId) {
-                        const Worker &otherWorker = workers.at(id);
-                        if (!connectWorkers(worker, otherWorker)) {
-                            ostringstream errorMsg;
-                            errorMsg << "Could not connect workers " << workerId
-                                     << " and " << id;
-                            throw runtime_error(errorMsg.str());
+                if (config.completeTopology) {
+                    for (WorkerId id : initializedWorkers) {
+                        if (id != workerId) {
+                            const Worker &otherWorker = workers.at(id);
+                            if (!connectWorkers(worker, otherWorker)) {
+                                ostringstream errorMsg;
+                                errorMsg << "Could not connect workers "
+                                         << workerId << " and " << id;
+                                throw runtime_error(errorMsg.str());
+                            }
                         }
                     }
                 }
@@ -1123,7 +1125,8 @@ void usage(const char *argv0, int exitCode) {
          << "  -t --treelet-stats         show treelet use stats" << endl
          << "  -w --worker-stats          show worker use stats" << endl
          << "  -d --diagnostics           collect & display diagnostics" << endl
-         << "  -a --assignment TYPE       indicate assignment type:" << endl
+         << "  -k --complete              eagerly build a complete topology" << endl
+         << "  -a --allocation TYPE       indicate allocation type:" << endl
          << "                             * static" << endl
          << "                             * uniform (default)" << endl
          << "  -h --help                  show help information" << endl;
@@ -1148,6 +1151,7 @@ int main(int argc, char *argv[]) {
     bool treeletStats = false;
     bool workerStats = false;
     bool collectDiagnostics = false;
+    bool completeTopology = false;
     Assignment assignment = Uniform;
 
     struct option long_options[] = {
@@ -1161,13 +1165,14 @@ int main(int argc, char *argv[]) {
         {"treelet-stats", no_argument, nullptr, 't'},
         {"worker-stats", no_argument, nullptr, 'w'},
         {"diagnostics", no_argument, nullptr, 'd'},
+        {"complete", no_argument, nullptr, 'k'},
         {"help", no_argument, nullptr, 'h'},
         {nullptr, 0, nullptr, 0},
     };
 
     while (true) {
         const int opt =
-            getopt_long(argc, argv, "s:p:i:r:b:l:twhda:", long_options, nullptr);
+            getopt_long(argc, argv, "s:p:i:r:b:l:twhdka:", long_options, nullptr);
 
         if (opt == -1) {
             break;
@@ -1210,6 +1215,10 @@ int main(int argc, char *argv[]) {
             collectDiagnostics = true;
             break;
         }
+        case 'k': {
+            completeTopology = true;
+            break;
+        }
         case 'a': {
             if (strcmp(optarg, "static") == 0) {
                 assignment = Static;
@@ -1242,7 +1251,7 @@ int main(int argc, char *argv[]) {
     unique_ptr<LambdaMaster> master;
 
     MasterConfiguration config = {treeletStats, workerStats, assignment,
-                                  collectDiagnostics};
+                                  collectDiagnostics, completeTopology};
 
     try {
         master = make_unique<LambdaMaster>(scene, listenPort, numLambdas,
