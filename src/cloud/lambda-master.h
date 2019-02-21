@@ -94,6 +94,7 @@ class LambdaMaster {
 
     bool processMessage(const WorkerId workerId, const meow::Message &message);
     bool processWorkerRequest(const WorkerRequest &request);
+    bool connectWorkers(const Worker &a, const Worker &b);
     void loadCamera();
 
     /* Assigning Objects */
@@ -132,6 +133,7 @@ class LambdaMaster {
 
     WorkerId currentWorkerID{1};
     std::map<WorkerId, Worker> workers{};
+    std::set<WorkerId> initializedWorkers{};
 
     /* Message Queues */
     std::deque<std::pair<WorkerId, meow::Message>> incomingMessages;
@@ -173,7 +175,6 @@ class LambdaMaster {
     /* Worker stats */
     WorkerStats workerStats;
     DemandTracker demandTracker;
-    size_t initializedWorkers{0};
     size_t diagnosticsReceived{0};
 
     /* Static Assignments */

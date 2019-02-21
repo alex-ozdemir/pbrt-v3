@@ -231,11 +231,22 @@ LambdaMaster::LambdaMaster(const string &scenePath, const uint16_t listenPort,
             }
 
             auto &worker = workers.at(workerId);
-            if (!worker.udpAddress.initialized()) {
-                initializedWorkers++;
+            if (not worker.udpAddress.initialized() || not (worker.udpAddress.get() == addr)) {
+                worker.udpAddress.reset(move(addr));
+                initializedWorkers.insert(workerId);
+                for (WorkerId id : initializedWorkers) {
+                    if (id != workerId) {
+                        const Worker &otherWorker = workers.at(id);
+                        if (!connectWorkers(worker, otherWorker)) {
+                            ostringstream errorMsg;
+                            errorMsg << "Could not connect workers " << workerId
+                                     << " and " << id;
+                            throw runtime_error(errorMsg.str());
+                        }
+                    }
+                }
             }
 
-            worker.udpAddress.reset(move(addr));
 
             /* create connection response */
             protobuf::ConnectResponse resp;
@@ -556,7 +567,7 @@ ResultType LambdaMaster::updateStatusMessage() {
         << " done paths: " << workerStats.finishedPaths() << " (" << fixed
         << setprecision(1) << (100.0 * workerStats.finishedPaths() / totalPaths)
         << "%)"
-        << " | workers: " << workers.size() << " (" << initializedWorkers << ")"
+        << " | workers: " << workers.size() << " (" << initializedWorkers.size() << ")"
         << " | requests: " << pendingWorkerRequests.size() << " | \u2191 "
         << workerStats.sentRays() << " | \u2193 " << workerStats.receivedRays()
         << " (" << fixed << setprecision(1)
@@ -591,7 +602,7 @@ ResultType LambdaMaster::handleMessages() {
 ResultType LambdaMaster::handleWorkerRequests() {
     workerRequestTimer.reset();
 
-    if (initializedWorkers < numberOfLambdas * 0.90) {
+    if (initializedWorkers.size() < numberOfLambdas * 0.90) {
         return ResultType::Continue;
     }
 
@@ -623,10 +634,6 @@ ResultType LambdaMaster::handleWriteOutput() {
 bool LambdaMaster::processWorkerRequest(const WorkerRequest &request) {
     auto &worker = workers.at(request.worker);
 
-    if (!worker.udpAddress.initialized()) {
-        /* LOG(WARNING) << "No UDP address for " << request.worker << endl; */
-        return false;
-    }
 
     const auto treeletId = request.treelet;
 
@@ -642,7 +649,15 @@ bool LambdaMaster::processWorkerRequest(const WorkerRequest &request) {
         *random::sample(workerIdList.cbegin(), workerIdList.cend());
     const auto &selectedWorker = workers.at(selectedWorkerId);
 
-    if (!selectedWorker.udpAddress.initialized()) {
+    return connectWorkers(worker, selectedWorker);
+}
+
+bool LambdaMaster::connectWorkers(const Worker &a, const Worker &b) {
+    if (!a.udpAddress.initialized()) {
+        return false;
+    }
+
+    if (!b.udpAddress.initialized()) {
         return false;
     }
 
@@ -653,8 +668,8 @@ bool LambdaMaster::processWorkerRequest(const WorkerRequest &request) {
         return {OpCode::ConnectTo, protoutil::to_string(proto)};
     };
 
-    worker.connection->enqueue_write(makeMessage(selectedWorker).str());
-    selectedWorker.connection->enqueue_write(makeMessage(worker).str());
+    a.connection->enqueue_write(makeMessage(b).str());
+    b.connection->enqueue_write(makeMessage(a).str());
 
     return true;
 }
